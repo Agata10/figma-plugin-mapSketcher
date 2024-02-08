@@ -101,6 +101,7 @@ function App() {
     // await renderSVGFromURL(
     //   "https://github.com/wmgeolab/geoBoundaries/raw/9469f09/releaseData/gbOpen/USA/ADM0/geoBoundaries-USA-ADM0_simplified.geojson"
     // );
+    parent.postMessage({ pluginMessage: "Submit button clicked" }, "*");
   };
 
   const onChange = () => {
@@ -115,7 +116,7 @@ function App() {
   return (
     <div className="App" style={{ background: "var(--figma-color-bg)" }}>
       <header>
-        <h1>Map sketcher</h1>
+        <h1>Map Sketcher</h1>
       </header>
       <main>
         <label htmlFor="input">Country name:</label>

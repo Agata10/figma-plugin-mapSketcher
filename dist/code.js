@@ -1,1 +1,1 @@
-figma.showUI(__html__,{themeColors:!0,height:500});
+figma.showUI(__html__,{themeColors:!1,height:500}),figma.ui.onmessage=o=>{console.log("got this from the UI",o),figma.closePlugin()};
