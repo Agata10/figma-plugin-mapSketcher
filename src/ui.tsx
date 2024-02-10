@@ -93,6 +93,12 @@ function App() {
     }
   }, [geoJSON]);
 
+  const submitByEnterButton = (event) => {
+    if (event.keyCode === 13) {
+      onSubmit(event);
+    }
+  };
+
   const onSubmit = async (e) => {
     e.preventDefault();
     await fetchCountryISONumber();
@@ -132,6 +138,7 @@ function App() {
             id="input"
             ref={inputRef}
             onChange={onChange}
+            onKeyDown={(e) => submitByEnterButton(e)}
           />
         </div>
         <div>
