@@ -42,7 +42,7 @@ function App() {
         const url: string = dataGeo.simplifiedGeometryGeoJSON
           .replace("github.com", "media.githubusercontent.com/media")
           .replace("/raw/", "/");
-        await fetchGeoJSONData(url);
+        await fetchGeoJSONData(url); //fetch GEOJSON file data
       } else {
         throw new Error(
           `Failed to fetch URL to GEOJSON. Status code: ${responseGeoBundaries.status}`
@@ -84,21 +84,15 @@ function App() {
     if (countryISO) {
       fetchGeoJSON();
     }
-  }, [countryISO]);
-
-  useEffect(() => {
     if (geoJSON) {
       convertGeoJSONToSVGPath();
+      if (svgContent) {
+        onCreateFigma(svgContent);
+      }
     }
-  }, [geoJSON]);
+  }, [countryISO, geoJSON]);
 
-  useEffect(() => {
-    if (svgContent) {
-      onCreateFigma(svgContent);
-    }
-  }, [svgContent]);
-
-  const submitByEnterButton = (event: KeyboardEvent<HTMLButtonElement>) => {
+  const submitByEnterButton = (event) => {
     if (event.keyCode === 13) {
       onSubmit(event);
     }
@@ -144,7 +138,6 @@ function App() {
           />
         </div>
         <div>
-          <h2>GeoJSON to SVG Converter</h2>
           {svgContent ? (
             <svg
               viewBox="-20 -20 300 200"
@@ -158,8 +151,10 @@ function App() {
             >
               <path d={`${svgContent}`} />
             </svg>
-          ) : (
+          ) : countryName ? (
             <p>Loading GeoJSON data...</p>
+          ) : (
+            ""
           )}
         </div>
       </main>
