@@ -1,3 +1,7 @@
+:root {
+  --font-stack: 'Inter', sans-serif;
+}
+
 .App {
   display: block;
 }
@@ -10,4 +14,31 @@ header,
 footer,
 main {
   margin: 1em;
+}
+
+/*SCROLLBAR*/
+/* width */
+::-webkit-scrollbar {
+  width: 4px;
+}
+
+/* Track */
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+/* Handle */
+::-webkit-scrollbar-thumb {
+  background: #0000004d;
+  border-radius: 4px;
+}
+
+/* Handle on hover */
+::-webkit-scrollbar-thumb:hover {
+  background: #00000080;
+}
+
+.single-country:hover {
+  color: #c5b2dc !important;
+
 }
