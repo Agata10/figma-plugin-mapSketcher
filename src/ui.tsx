@@ -1,6 +1,6 @@
 import "./ui.css";
 import "../node_modules/figma-plugin-ds/dist/figma-plugin-ds.css";
-import { useRef, useState, useEffect } from "react";
+import { useRef, useState, useEffect, MouseEvent, KeyboardEvent } from "react";
 import * as React from "react";
 import * as ReactDOM from "react-dom/client";
 import fetch from "node-fetch";
@@ -11,7 +11,6 @@ function App() {
   const [countryName, setCountryName] = useState<string>("");
   const [countryISO, setCountryISO] = useState<string>("");
   const [geoJSON, setGeoJSON] = useState<string>("");
-  const [jsonURL, setJsonURL] = useState<string>("");
   const [svgContent, setSvgContent] = useState<string>("");
   const GeoJSON2SVG = require("geojson2svg").GeoJSON2SVG;
 
@@ -93,18 +92,21 @@ function App() {
     }
   }, [geoJSON]);
 
-  const submitByEnterButton = (event) => {
+  useEffect(() => {
+    if (svgContent) {
+      onCreateFigma(svgContent);
+    }
+  }, [svgContent]);
+
+  const submitByEnterButton = (event: KeyboardEvent<HTMLButtonElement>) => {
     if (event.keyCode === 13) {
       onSubmit(event);
     }
   };
 
-  const onSubmit = async (e) => {
+  const onSubmit = async (e: MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
     await fetchCountryISONumber();
-    if (svgContent) {
-      await onCreateFigma(svgContent);
-    }
   };
 
   const onCreateFigma = async (svgContent: String) => {
@@ -163,7 +165,7 @@ function App() {
       </main>
       <footer>
         {isDisabled ? (
-          <button className="button button--primary" onClick={onSubmit}>
+          <button className="button button--primary" onMouseDown={onSubmit}>
             Generete Map
           </button>
         ) : (
