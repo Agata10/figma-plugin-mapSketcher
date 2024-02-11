@@ -14,6 +14,12 @@ export const SearchList = ({ countries, inputRef, onClick }) => {
   return (
     <ul className="list" style={style}>
       {countries.map((country, id) => {
+        if (
+          country.name.common === "United States Virgin Islands" ||
+          country.name.common === "United States Minor Outlying Islands"
+        ) {
+          return null;
+        }
         return (
           <SingleCountry
             country={country.name.common}

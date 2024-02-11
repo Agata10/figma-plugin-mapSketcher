@@ -10,33 +10,124 @@ function App() {
   const inputRef = useRef<HTMLInputElement>(null);
   const [isDisabled, setDisabled] = useState(false);
   const [countryName, setCountryName] = useState<string>("");
-  const [countryISO, setCountryISO] = useState<string>("");
-  const [geoJSON, setGeoJSON] = useState<string>("");
   const [svgContent, setSvgContent] = useState<string>("");
   const [countriesList, setCountriesList] = useState<string>("");
   const [renderList, setRenderList] = useState(true);
   const [error, setError] = useState(false);
   const GeoJSON2SVG = require("geojson2svg").GeoJSON2SVG;
 
-  const fetchCountryISONumber = async (): Promise<void> => {
-    try {
-      const response = await fetch(
-        `https://restcountries.com/v3.1/name/${countryName}`
-      );
-      const data = await response.json();
-      if (response.ok) {
-        setCountryISO(data[0]?.cca3);
-        setError(false);
-        setCountryName("");
-      } else {
-        setError(true);
-        throw new Error("No ISO code for country found" + response.status);
-      }
-    } catch (err) {
-      setError(true);
+  const fetchCountryISONumber = async (): Promise<String> => {
+    const response = await fetch(
+      `https://restcountries.com/v3.1/name/${countryName}`
+    );
+    const data = await response.json();
+    if (response.ok) {
+      //setCountryISO(data[0]?.cca3);
+      setError(false);
       setCountryName("");
-      console.log(err);
+      return data[0]?.cca3;
+    } else {
+      setError(true);
+      throw new Error("No ISO code for country found" + response.status);
     }
+  };
+
+  const fetchGeoJSON = async (isoNumber: String): Promise<string> => {
+    const responseGeoBundaries = await fetch(
+      `https://www.geoboundaries.org/api/current/gbOpen/${isoNumber}/ADM0/`
+    );
+    const dataGeo = await responseGeoBundaries.json();
+    if (responseGeoBundaries.ok) {
+      //console.log("GeoJSONURL:" + dataGeo.simplifiedGeometryGeoJSON);
+      const url: string = dataGeo.simplifiedGeometryGeoJSON
+        .replace("github.com", "media.githubusercontent.com/media")
+        .replace("/raw/", "/");
+      return url;
+    } else {
+      throw new Error(
+        `Failed to fetch URL to GEOJSON. Status code: ${responseGeoBundaries.status}`
+      );
+    }
+  };
+
+  const fetchGeoJSONData = async (url: string): Promise<string> => {
+    const responseFromGeoJsonURL = await fetch(url);
+    if (responseFromGeoJsonURL.ok) {
+      const geojson = await responseFromGeoJsonURL.json();
+      return geojson;
+      //console.log("GeoJSONData:" + JSON.stringify(geojson));
+    } else {
+      throw new Error(
+        `Failed to fetch GEOJSON. Status code: ${responseFromGeoJsonURL.status}`
+      );
+    }
+  };
+
+  const convertGeoJSONToSVGPath = async (data: string): Promise<void> => {
+    const converter = new GeoJSON2SVG({
+      output: "path",
+    });
+    const svgStr = converter.convert(data);
+    //console.log("SVG:", svgStr[0]);
+    setSvgContent(svgStr[0]);
+  };
+
+  const fetchData = async () => {
+    try {
+      const isoNumber = await fetchCountryISONumber();
+      const geoJsonURL = await fetchGeoJSON(isoNumber);
+      const geoJsonData = await fetchGeoJSONData(geoJsonURL);
+      await convertGeoJSONToSVGPath(geoJsonData);
+    } catch (err) {
+      console.log("Failed to catch data.");
+    }
+  };
+
+  useEffect(() => {
+    if (countryName !== "") {
+      fetchData();
+    }
+  }, [countryName]);
+
+  useEffect(() => {
+    if (svgContent) {
+      onCreateFigma(svgContent);
+    }
+  }, [svgContent]);
+
+  const submitByEnterButton = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.keyCode === 13) {
+      setCountryName(inputRef.current?.value);
+      setRenderList(false);
+    }
+  };
+
+  const onSubmit = async (e: MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault();
+    setCountryName(inputRef.current?.value);
+  };
+
+  const onCreateFigma = async (svgContent: String) => {
+    parent.postMessage(
+      { pluginMessage: { type: "create-map", svgContent } },
+      "*"
+    );
+  };
+
+  const onChange = async () => {
+    if (inputRef.current?.value === "") {
+      setDisabled(false);
+      setRenderList(false);
+    } else {
+      setDisabled(true);
+      setError(false);
+      fetchNames(inputRef.current?.value.toLowerCase());
+      setRenderList(true);
+    }
+  };
+
+  const handleCountryClick = () => {
+    setRenderList(false);
   };
 
   const fetchNames = (value: String) => {
@@ -56,109 +147,6 @@ function App() {
       });
   };
 
-  const fetchGeoJSON = async (): Promise<void> => {
-    try {
-      console.log("code", countryISO);
-      const responseGeoBundaries = await fetch(
-        `https://www.geoboundaries.org/api/current/gbOpen/${countryISO}/ADM0/`
-      );
-      const dataGeo = await responseGeoBundaries.json();
-
-      if (responseGeoBundaries.ok) {
-        //console.log("GeoJSONURL:" + dataGeo.simplifiedGeometryGeoJSON);
-        const url: string = dataGeo.simplifiedGeometryGeoJSON
-          .replace("github.com", "media.githubusercontent.com/media")
-          .replace("/raw/", "/");
-        await fetchGeoJSONData(url); //fetch GEOJSON file data
-      } else {
-        throw new Error(
-          `Failed to fetch URL to GEOJSON. Status code: ${responseGeoBundaries.status}`
-        );
-      }
-    } catch (err) {
-      console.log(err);
-    }
-  };
-
-  const fetchGeoJSONData = async (url: string): Promise<void> => {
-    try {
-      const responseFromGeoJsonURL = await fetch(url);
-
-      if (responseFromGeoJsonURL.ok) {
-        const geojson = await responseFromGeoJsonURL.json();
-        setGeoJSON(geojson);
-        //console.log("GeoJSONData:" + JSON.stringify(geojson));
-      } else {
-        throw new Error(
-          `Failed to fetch GEOJSON. Status code: ${responseFromGeoJsonURL.status}`
-        );
-      }
-    } catch (err) {
-      console.log(err);
-    }
-  };
-
-  async function convertGeoJSONToSVGPath(): Promise<void> {
-    const converter = new GeoJSON2SVG({
-      output: "path",
-    });
-    const svgStr = converter.convert(geoJSON);
-    //console.log("SVG:", svgStr[0]);
-    setSvgContent(svgStr[0]);
-  }
-
-  useEffect(() => {
-    if (countryISO) {
-      fetchGeoJSON();
-    }
-  }, [countryISO]);
-
-  useEffect(() => {
-    if (countryName) {
-      fetchCountryISONumber();
-    }
-  }, [countryName]);
-
-  useEffect(() => {
-    if (geoJSON) {
-      convertGeoJSONToSVGPath();
-      if (svgContent) {
-        onCreateFigma(svgContent);
-      }
-    }
-  }, [geoJSON, svgContent]);
-
-  const submitByEnterButton = (event) => {
-    if (event.keyCode === 13) {
-      onSubmit(event);
-      setRenderList(false);
-    }
-  };
-
-  const onSubmit = async (e: MouseEvent<HTMLButtonElement>) => {
-    e.preventDefault();
-    setCountryName(inputRef.current?.value);
-  };
-
-  const onCreateFigma = async (svgContent: String) => {
-    parent.postMessage(
-      { pluginMessage: { type: "create-map", svgContent } },
-      "*"
-    );
-  };
-
-  const handleCountryClick = () => {
-    setRenderList(false);
-  };
-  const onChange = async () => {
-    if (inputRef.current?.value === "") {
-      setDisabled(false);
-    } else {
-      setDisabled(true);
-      setError(false);
-      fetchNames(inputRef.current?.value);
-    }
-  };
   return (
     <div className="App" style={{ background: "var(--figma-color-bg)" }}>
       <header>
@@ -176,7 +164,7 @@ function App() {
               id="input"
               ref={inputRef}
               onChange={onChange}
-              onKeyDown={(e) => submitByEnterButton(e)}
+              onKeyDown={submitByEnterButton}
             />
             {error && (
               <p className="error" style={{ fontSize: "8px", color: "red" }}>

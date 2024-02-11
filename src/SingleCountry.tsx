@@ -13,7 +13,11 @@ export const SingleCountry = ({ country, inputRef, onClick }) => {
       onClick={(e) => {
         e.preventDefault();
         inputRef.current.value = country.toLowerCase();
+        if (country === "United States") {
+          inputRef.current.value = "usa";
+        }
         onClick();
+        inputRef.current.focus(); // so the enter works after assigning value from the list
         //alert(`You selected ${country}!`);
       }}
     >
