@@ -16,6 +16,34 @@ main {
   margin: 1em;
 }
 
+input {
+  margin-bottom: 6em;
+}
+
+main,
+header {
+  display: flex;
+  flex-direction: row;
+  background: "var(--figma-color-bg)";
+}
+
+header {
+  gap: 100px;
+}
+
+main {
+  gap: 50px;
+}
+
+.first-row {
+  display: block;
+}
+
+.second-row {
+  display: flex;
+  justify-content: left;
+}
+
 /*SCROLLBAR*/
 /* width */
 ::-webkit-scrollbar {
@@ -39,6 +67,6 @@ main {
 }
 
 .single-country:hover {
-  color: #c5b2dc !important;
+  color: #7B61FF !important;
 
 }

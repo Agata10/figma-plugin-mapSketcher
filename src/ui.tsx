@@ -5,10 +5,12 @@ import * as React from "react";
 import * as ReactDOM from "react-dom/client";
 import fetch from "node-fetch";
 import { SearchList } from "./SearchList";
+import { Preview } from "./Preview";
 
 function App() {
   const inputRef = useRef<HTMLInputElement>(null);
   const [isDisabled, setDisabled] = useState(false);
+  const [isPreview, setPreview] = useState(false);
   const [countryName, setCountryName] = useState<string>("");
   const [svgContent, setSvgContent] = useState<string>("");
   const [countriesList, setCountriesList] = useState<string>("");
@@ -54,8 +56,8 @@ function App() {
     const responseFromGeoJsonURL = await fetch(url);
     if (responseFromGeoJsonURL.ok) {
       const geojson = await responseFromGeoJsonURL.json();
-      return geojson;
       //console.log("GeoJSONData:" + JSON.stringify(geojson));
+      return geojson;
     } else {
       throw new Error(
         `Failed to fetch GEOJSON. Status code: ${responseFromGeoJsonURL.status}`
@@ -148,14 +150,18 @@ function App() {
   };
 
   return (
-    <div className="App" style={{ background: "var(--figma-color-bg)" }}>
+    <div className="App">
       <header>
         <h1>Map Sketcher</h1>
+        <p style={{ paddingTop: "10px" }}>Preview</p>
       </header>
       <main>
-        <label htmlFor="input">Country name:</label>
-        <div>
-          <div className="input input--with-icon">
+        <div className="first-row">
+          <label htmlFor="input">Country name:</label>
+          <div
+            className="input input--with-icon"
+            style={{ marginBottom: "2em", width: "250px" }}
+          >
             <div className="icon icon--search"></div>
             <input
               type="text"
@@ -172,30 +178,28 @@ function App() {
               </p>
             )}
           </div>
+          {renderList && countriesList && countriesList.length > 0 ? (
+            <SearchList
+              countries={countriesList}
+              inputRef={inputRef}
+              onClick={handleCountryClick}
+            />
+          ) : (
+            ""
+          )}
+          {isDisabled ? (
+            <button className="button button--primary" onMouseDown={onSubmit}>
+              Generete Map
+            </button>
+          ) : (
+            <button className="button button--primary" disabled>
+              Generete Map
+            </button>
+          )}
         </div>
-        {renderList && countriesList && countriesList.length > 0 ? (
-          <SearchList
-            countries={countriesList}
-            inputRef={inputRef}
-            onClick={handleCountryClick}
-          />
-        ) : (
-          ""
-        )}
-        <div>
+        <div className="sec-row">
           {svgContent ? (
-            <svg
-              viewBox="-20 -20 300 200"
-              width="300"
-              height="200"
-              xmlns="http://www.w3.org/2000/svg"
-              style={{
-                fill: "lightCoral",
-                border: "1px solid black",
-              }}
-            >
-              <path d={`${svgContent}`} />
-            </svg>
+            <Preview svgContent={svgContent} />
           ) : countryName.length > 0 && !error ? (
             <p>Loading GeoJSON data...</p>
           ) : (
@@ -203,17 +207,7 @@ function App() {
           )}
         </div>
       </main>
-      <footer>
-        {isDisabled ? (
-          <button className="button button--primary" onMouseDown={onSubmit}>
-            Generete Map
-          </button>
-        ) : (
-          <button className="button button--primary" disabled>
-            Generete Map
-          </button>
-        )}
-      </footer>
+      <footer></footer>
     </div>
   );
 }

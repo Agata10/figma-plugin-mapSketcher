@@ -5,7 +5,7 @@ export const SingleCountry = ({ country, inputRef, onClick }) => {
     <li
       style={{
         fontSize: "12px",
-        paddingBottom: "10px",
+        paddingBottom: "6px",
         cursor: "pointer",
         color: "black",
       }}

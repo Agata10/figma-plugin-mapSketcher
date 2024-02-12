@@ -5,7 +5,8 @@ import "./ui.css";
 const style = {
   listStyleType: "none",
   paddingLeft: "0",
-  height: "200px",
+  height: "100px",
+  window: "250px",
   overflow: "auto",
   fontFamily: "var(--font-stack)",
 };
