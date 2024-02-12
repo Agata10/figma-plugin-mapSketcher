@@ -11,6 +11,7 @@ function App() {
   const inputRef = useRef<HTMLInputElement>(null);
   const [isDisabled, setDisabled] = useState(false);
   const [isPreview, setPreview] = useState(false);
+  const [isVector, setVector] = useState(false);
   const [countryName, setCountryName] = useState<string>("");
   const [svgContent, setSvgContent] = useState<string>("");
   const [countriesList, setCountriesList] = useState<string>("");
@@ -92,28 +93,42 @@ function App() {
   }, [countryName]);
 
   useEffect(() => {
-    if (svgContent) {
-      onCreateFigma(svgContent);
+    if (svgContent && isVector) {
+      createVectorInFigma(svgContent);
     }
-  }, [svgContent]);
+  }, [svgContent, isVector]);
 
   const submitByEnterButton = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.keyCode === 13) {
+    if (e.keyCode === 13 && !isPreview) {
       setCountryName(inputRef.current?.value);
       setRenderList(false);
+      setPreview(true);
+      sendPreviewToFigma();
+    } else if (e.keyCode === 13 && isPreview) {
+      setVector(true);
     }
   };
 
   const onSubmit = async (e: MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
     setCountryName(inputRef.current?.value);
+    setVector(true);
   };
 
-  const onCreateFigma = async (svgContent: String) => {
+  const onPreviewSubmit = () => {
+    setPreview(true);
+    sendPreviewToFigma();
+  };
+
+  const createVectorInFigma = async (svgContent: String) => {
     parent.postMessage(
       { pluginMessage: { type: "create-map", svgContent } },
       "*"
     );
+  };
+
+  const sendPreviewToFigma = () => {
+    parent.postMessage({ pluginMessage: { type: "preview" } }, "*");
   };
 
   const onChange = async () => {
@@ -153,7 +168,7 @@ function App() {
     <div className="App">
       <header>
         <h1>Map Sketcher</h1>
-        <p style={{ paddingTop: "10px" }}>Preview</p>
+        {isPreview ? <p style={{ paddingTop: "10px" }}>Preview</p> : ""}
       </header>
       <main>
         <div className="first-row">
@@ -187,9 +202,16 @@ function App() {
           ) : (
             ""
           )}
-          {isDisabled ? (
-            <button className="button button--primary" onMouseDown={onSubmit}>
+          {isDisabled && !isPreview ? (
+            <button
+              className="button button--primary"
+              onMouseDown={onPreviewSubmit}
+            >
               Generete Map
+            </button>
+          ) : isPreview ? (
+            <button className="button button--primary" onMouseDown={onSubmit}>
+              Generete Vector
             </button>
           ) : (
             <button className="button button--primary" disabled>
