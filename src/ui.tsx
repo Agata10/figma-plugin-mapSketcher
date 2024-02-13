@@ -9,14 +9,15 @@ import { Preview } from "./Preview";
 
 function App() {
   const inputRef = useRef<HTMLInputElement>(null);
-  const [isDisabled, setDisabled] = useState(false);
-  const [isPreview, setPreview] = useState(false);
-  const [isVector, setVector] = useState(false);
+  const [isDisabled, setDisabled] = useState<boolean>(false);
+  const [isPreview, setPreview] = useState<boolean>(false);
+  const [isAppendToFigma, setAppendToFigma] = useState<boolean>(false);
+  const [isVectorBtn, setVectorBtn] = useState<boolean>(false);
   const [countryName, setCountryName] = useState<string>("");
   const [svgContent, setSvgContent] = useState<string>("");
   const [countriesList, setCountriesList] = useState<string>("");
-  const [renderList, setRenderList] = useState(true);
-  const [error, setError] = useState(false);
+  const [renderList, setRenderList] = useState<boolean>(true);
+  const [error, setError] = useState<boolean>(false);
   const GeoJSON2SVG = require("geojson2svg").GeoJSON2SVG;
 
   const fetchCountryISONumber = async (): Promise<String> => {
@@ -27,10 +28,8 @@ function App() {
     if (response.ok) {
       //setCountryISO(data[0]?.cca3);
       setError(false);
-      setCountryName("");
       return data[0]?.cca3;
     } else {
-      setError(true);
       throw new Error("No ISO code for country found" + response.status);
     }
   };
@@ -83,41 +82,68 @@ function App() {
       await convertGeoJSONToSVGPath(geoJsonData);
     } catch (err) {
       console.log("Failed to catch data.");
+      await cancelPreview();
+      setCountryName("");
+      setPreview(false);
+      setAppendToFigma(false);
+      setVectorBtn(false);
+      setError(true);
     }
   };
 
   useEffect(() => {
     if (countryName !== "") {
       fetchData();
+    } else {
+      cancelPreview();
     }
   }, [countryName]);
 
   useEffect(() => {
-    if (svgContent && isVector) {
+    if (svgContent && isAppendToFigma) {
       createVectorInFigma(svgContent);
     }
-  }, [svgContent, isVector]);
+  }, [svgContent, isAppendToFigma]);
+
+  useEffect(() => {
+    if (!isPreview) {
+      inputRef.current.value = "";
+      cancelPreview();
+    } else {
+      sendPreviewToFigma();
+    }
+  }, [isPreview]);
 
   const submitByEnterButton = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.keyCode === 13 && !isPreview) {
+    if (e.keyCode === 13 && !isPreview && inputRef.current.value.length > 0) {
       setCountryName(inputRef.current?.value);
       setRenderList(false);
       setPreview(true);
-      sendPreviewToFigma();
-    } else if (e.keyCode === 13 && isPreview) {
-      setVector(true);
+      setVectorBtn(true);
+    } else if (
+      e.keyCode === 13 &&
+      isPreview &&
+      !isAppendToFigma &&
+      !isVectorBtn
+    ) {
+      setCountryName(inputRef.current?.value);
+      setVectorBtn(true);
+      setRenderList(false);
+    } else if (e.keyCode === 13 && isVectorBtn) {
+      setAppendToFigma(true);
     }
   };
 
   const onSubmit = async (e: MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
     setCountryName(inputRef.current?.value);
-    setVector(true);
+    setAppendToFigma(true);
   };
 
   const onPreviewSubmit = () => {
+    setCountryName(inputRef.current?.value);
     setPreview(true);
-    sendPreviewToFigma();
+    setVectorBtn(true);
   };
 
   const createVectorInFigma = async (svgContent: String) => {
@@ -127,15 +153,24 @@ function App() {
     );
   };
 
-  const sendPreviewToFigma = () => {
+  const sendPreviewToFigma = async () => {
     parent.postMessage({ pluginMessage: { type: "preview" } }, "*");
   };
 
-  const onChange = async () => {
+  const cancelPreview = async () => {
+    parent.postMessage({ pluginMessage: { type: "no-preview" } }, "*");
+  };
+
+  const onChange = () => {
     if (inputRef.current?.value === "") {
       setDisabled(false);
       setRenderList(false);
+      setAppendToFigma(false);
+      setVectorBtn(false);
     } else {
+      if (isPreview && !isAppendToFigma) {
+        setVectorBtn(false);
+      }
       setDisabled(true);
       setError(false);
       fetchNames(inputRef.current?.value.toLowerCase());
@@ -168,7 +203,11 @@ function App() {
     <div className="App">
       <header>
         <h1>Map Sketcher</h1>
-        {isPreview ? <p style={{ paddingTop: "10px" }}>Preview</p> : ""}
+        {isPreview ? (
+          <p style={{ paddingTop: "10px", fontSize: "12px" }}>Preview</p>
+        ) : (
+          ""
+        )}
       </header>
       <main>
         <div className="first-row">
@@ -202,16 +241,16 @@ function App() {
           ) : (
             ""
           )}
-          {isDisabled && !isPreview ? (
+          {isDisabled && inputRef.current.value.length > 0 && !isVectorBtn ? (
             <button
               className="button button--primary"
               onMouseDown={onPreviewSubmit}
             >
               Generete Map
             </button>
-          ) : isPreview ? (
+          ) : isPreview && isVectorBtn ? (
             <button className="button button--primary" onMouseDown={onSubmit}>
-              Generete Vector
+              Append Vector
             </button>
           ) : (
             <button className="button button--primary" disabled>
@@ -220,16 +259,26 @@ function App() {
           )}
         </div>
         <div className="sec-row">
-          {svgContent ? (
+          {svgContent && isPreview ? (
             <Preview svgContent={svgContent} />
-          ) : countryName.length > 0 && !error ? (
+          ) : countryName.length > 0 && !error && isPreview ? (
             <p>Loading GeoJSON data...</p>
           ) : (
             ""
           )}
         </div>
       </main>
-      <footer></footer>
+      <footer
+        style={{
+          fontSize: "8px",
+          position: "fixed",
+          bottom: "0",
+          left: "4rem",
+          textAlign: "center",
+        }}
+      >
+        Maps based on geoBoundaries.org
+      </footer>
     </div>
   );
 }
