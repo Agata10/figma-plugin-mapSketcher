@@ -1,70 +1,101 @@
-# Getting Started with Create React App
+# Map Sketcher
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+## Table of Contents
 
-## Available Scripts
+- [About](#about)
+- [Technologies](#technologies)
+- [Run Locally](#run-locally)
+- [Lessons](#lessons-learned)
+- [Demo](#demo)
+- [Screenshots](#screenshots)
+- [API Reference](#api-reference)
+- [License](#license)
 
-In the project directory, you can run:
+## About
 
-### `npm start`
+Map Sketcher is figma plugin for genereting countries maps.
+The UI was created using React App and bundled to Figma Plugin API by webpack.\
+The user enters the country name, then he's able to genereate map into Preview, if he wants to change the country he simply can do it. After that 'Append Vector' place map into Figma.
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+## Technologies
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+- React
+- TypeScript
+- HTML / CSS
+- Figma Plugin API
+- different API's to generete GeoJson
+- webpack
 
-### `npm test`
+## Run Locally
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+Clone the project
 
-### `npm run build`
+```bash
+  git clone https://link-to-project
+```
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+Go to the project directory
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+```bash
+  cd my-project
+```
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+Install dependencies
 
-### `npm run eject`
+```bash
+  npm install
+```
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+build
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+```bash
+  npm run build
+```
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+Start the server
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+```bash
+  npm run start
+```
 
-## Learn More
+Watch tsconfig file
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+```bash
+Ctrl+Shift+B
+```
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+In Figma:
+Plugins -> Development -> import from manifest
 
-### Code Splitting
+## Lessons Learned
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+1. I practiced bundling files with webpack. I needed to figure out how to organize my files, place entry point correctly.
+   The entry point for UI : `dist/ui.html`, and for figma plugin: `dist/code.js`
 
-### Analyzing the Bundle Size
+2. Figma Plugin works with iframe and sandbox. The sandbox is the Figma plugin side of my application (`code.ts`) which has access to Figma layers. It gets message via `onmessage` from UI. My UI created in React (`ui.tsx`) uses iframe. It has access to browser API's, user input and it communicate with the plugin by `postMessage`.
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+3. The problem I faced was not able to get by country name the geojson file from `geoBundaries.org` API. They required country ISO. I needed to take user input and get country ISO from other API, then pass that to the geoBundaries API.
 
-### Making a Progressive Web App
+4. To convert geoJSON to SVG path, I used npm package: `geojson2svg`. I was able to pass it to Figma and then create node.
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+5. I had a conflict issuse with @figma/plugin-typings and the other file in index.d.ts. for `fetch` and `console` method. They were defined in two files so I needed to comment the definition in one of the files.
 
-### Advanced Configuration
+## Demo
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+## Screenshots
 
-### Deployment
+![App Screenshot](https://via.placeholder.com/468x300?text=App+Screenshot+Here)
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+## API Reference
 
-### `npm run build` fails to minify
+#### Country ISO + generating the list of country names
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+`restcountries.com`
+
+#### GeoJson file access
+
+`geoboundaries.org`
+
+## License
+
+[MIT](/LICENSE)
