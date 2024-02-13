@@ -91,11 +91,14 @@ There are possibilities to expand app for more features like:
 
 ## Demo
 
-https://github.com/Agata10/figma-plugin-mapSketcher/blob/main/src/assets/map_sketcher.mov
+
+https://github.com/Agata10/figma-plugin-mapSketcher/assets/124964478/28d90083-fec9-4b92-bc05-ed91d3ed4606
+
+
 
 ## Screenshots
 
-![App Screenshot](/src/assets/screenshot.png)
+<img src="/src/assets/screenshot.png" width="700" height="500">
 
 ## API Reference
 
