@@ -6,6 +6,7 @@
 - [Technologies](#technologies)
 - [Run Locally](#run-locally)
 - [Lessons](#lessons-learned)
+- [Future app possibilities](#possibilities)
 - [Demo](#demo)
 - [Screenshots](#screenshots)
 - [API Reference](#api-reference)
@@ -79,6 +80,14 @@ Plugins -> Development -> import from manifest
 4. To convert geoJSON to SVG path, I used npm package: `geojson2svg`. I was able to pass it to Figma and then create node.
 
 5. I had a conflict issuse with @figma/plugin-typings and the other file in index.d.ts. for `fetch` and `console` method. They were defined in two files so I needed to comment the definition in one of the files.
+
+## Future app possibilities
+
+There are possibilities to expand app for more features like:
+
+1. support for more administrative areas, e.g.: states & counties
+2. adding a world map for easier area selection
+3. selecting multiple regions at once
 
 ## Demo
 
