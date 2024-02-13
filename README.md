@@ -91,6 +91,8 @@ There are possibilities to expand app for more features like:
 
 ## Demo
 
+![App Video](/src/assets/map_sketcher.mov)
+
 ## Screenshots
 
 ![App Screenshot](/src/assets/screenshot.png)
