@@ -91,7 +91,7 @@ There are possibilities to expand app for more features like:
 
 ## Demo
 
-![App Video](/src/assets/map_sketcher.mov)
+https://github.com/Agata10/figma-plugin-mapSketcher/src/assets/map_sketcher.mov
 
 ## Screenshots
 
