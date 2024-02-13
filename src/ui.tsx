@@ -204,7 +204,11 @@ function App() {
       <header>
         <h1>Map Sketcher</h1>
         {isPreview ? (
-          <p style={{ paddingTop: "10px", fontSize: "12px" }}>Preview</p>
+          <p
+            style={{ paddingTop: "10px", fontSize: "12px", fontWeight: "300" }}
+          >
+            Preview:
+          </p>
         ) : (
           ""
         )}
