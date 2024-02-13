@@ -11,7 +11,7 @@ function App() {
   const inputRef = useRef<HTMLInputElement>(null);
   const [isDisabled, setDisabled] = useState(false);
   const [isPreview, setPreview] = useState(false);
-  const [isVector, setVector] = useState(false);
+  const [figma, setFigma] = useState(false);
   const [countryName, setCountryName] = useState<string>("");
   const [svgContent, setSvgContent] = useState<string>("");
   const [countriesList, setCountriesList] = useState<string>("");
@@ -27,10 +27,13 @@ function App() {
     if (response.ok) {
       //setCountryISO(data[0]?.cca3);
       setError(false);
-      setCountryName("");
       return data[0]?.cca3;
     } else {
       setError(true);
+      setPreview(false);
+      setFigma(false);
+      setCountryName("");
+      cancelPreview();
       throw new Error("No ISO code for country found" + response.status);
     }
   };
@@ -83,6 +86,9 @@ function App() {
       await convertGeoJSONToSVGPath(geoJsonData);
     } catch (err) {
       console.log("Failed to catch data.");
+      setPreview(false);
+      setFigma(false);
+      cancelPreview();
     }
   };
 
@@ -93,31 +99,43 @@ function App() {
   }, [countryName]);
 
   useEffect(() => {
-    if (svgContent && isVector) {
+    if (svgContent && figma) {
       createVectorInFigma(svgContent);
     }
-  }, [svgContent, isVector]);
+  }, [svgContent, figma]);
+
+  useEffect(() => {
+    if (isPreview) {
+      sendPreviewToFigma();
+    }
+  }, [isPreview]);
 
   const submitByEnterButton = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.keyCode === 13 && !isPreview) {
+    if (e.keyCode === 13 && !isPreview && inputRef.current.value.length > 0) {
       setCountryName(inputRef.current?.value);
       setRenderList(false);
       setPreview(true);
-      sendPreviewToFigma();
+      // sendPreviewToFigma();
     } else if (e.keyCode === 13 && isPreview) {
-      setVector(true);
+      setFigma(true);
     }
   };
 
   const onSubmit = async (e: MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
     setCountryName(inputRef.current?.value);
-    setVector(true);
+    if (isPreview) {
+      setFigma(true);
+    }
   };
 
   const onPreviewSubmit = () => {
+    setCountryName(inputRef.current?.value);
+    if (error) {
+      setPreview(false);
+    }
     setPreview(true);
-    sendPreviewToFigma();
+    //sendPreviewToFigma();
   };
 
   const createVectorInFigma = async (svgContent: String) => {
@@ -127,19 +145,31 @@ function App() {
     );
   };
 
-  const sendPreviewToFigma = () => {
+  const sendPreviewToFigma = async () => {
     parent.postMessage({ pluginMessage: { type: "preview" } }, "*");
+  };
+
+  const cancelPreview = () => {
+    parent.postMessage({ pluginMessage: { type: "no-preview" } }, "*");
   };
 
   const onChange = async () => {
     if (inputRef.current?.value === "") {
       setDisabled(false);
       setRenderList(false);
+      setPreview(false);
+      setFigma(false);
+      cancelPreview();
     } else {
       setDisabled(true);
       setError(false);
       fetchNames(inputRef.current?.value.toLowerCase());
       setRenderList(true);
+      if (isPreview && !figma) {
+        setCountryName("");
+        setPreview(false);
+        cancelPreview();
+      }
     }
   };
 
@@ -168,7 +198,11 @@ function App() {
     <div className="App">
       <header>
         <h1>Map Sketcher</h1>
-        {isPreview ? <p style={{ paddingTop: "10px" }}>Preview</p> : ""}
+        {isPreview ? (
+          <p style={{ paddingTop: "10px", fontSize: "12px" }}>Preview</p>
+        ) : (
+          ""
+        )}
       </header>
       <main>
         <div className="first-row">
@@ -211,7 +245,7 @@ function App() {
             </button>
           ) : isPreview ? (
             <button className="button button--primary" onMouseDown={onSubmit}>
-              Generete Vector
+              Append Vector
             </button>
           ) : (
             <button className="button button--primary" disabled>
@@ -220,9 +254,9 @@ function App() {
           )}
         </div>
         <div className="sec-row">
-          {svgContent ? (
+          {svgContent && isPreview ? (
             <Preview svgContent={svgContent} />
-          ) : countryName.length > 0 && !error ? (
+          ) : countryName.length > 0 && !error && isPreview ? (
             <p>Loading GeoJSON data...</p>
           ) : (
             ""
